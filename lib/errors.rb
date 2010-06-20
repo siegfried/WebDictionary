@@ -1,0 +1,2 @@
+class UnknownMediaTypeError < StandardedError
+end
