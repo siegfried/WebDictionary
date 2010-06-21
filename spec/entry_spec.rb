@@ -5,6 +5,12 @@ require 'json'
 
 describe Entry do
 
+  it 'should initialize with id and translations' do
+    entry = Entry.new('dog', {'en' => 'dog', 'fr' => 'chien'})
+    entry.id.should == 'dog'
+    entry.translations.should == {'en' => 'dog', 'fr' => 'chien'}
+  end
+
   it 'should create entry with json request' do
 
     request = mock('json request')
@@ -15,7 +21,7 @@ describe Entry do
     request.stub!(:body).and_return(body)
     request.stub!(:params).and_return({'id' => 'dog'})
 
-    entry = Entry.new(request)
+    entry = Entry.create_from_request(request)
     entry.to_hash.should == {'_id' => 'dog', 'translations' => {'en' => 'dog', 'fr' => 'chien'}}
 
   end
@@ -26,7 +32,7 @@ describe Entry do
     request.stub!(:form_data?).and_return(true)
     request.stub!(:params).and_return({'id' => 'dog', 'translations' => {'en' => 'dog', 'fr' => 'chien'}})
 
-    entry = Entry.new(request)
+    entry = Entry.create_from_request(request)
     entry.to_hash.should == {'_id' => 'dog', 'translations' => {'en' => 'dog', 'fr' => 'chien'}}
 
   end
@@ -37,8 +43,30 @@ describe Entry do
     request.stub!(:form_data?).and_return(false)
     request.stub!(:media_type).and_return('unknown')
 
-    lambda {Entry.new(request)}.should_raise(UnknowMediaTypeError)
+    lambda {Entry.create_from_request(request)}.should raise_error(UnknownMediaTypeError)
 
+  end
+
+  it 'should create entry with hash from database collection' do
+    hash = {'_id' => 'dog', 'translations' => {'en' => 'dog', 'fr' => 'chien'}}
+    entry = Entry.create_from_hash(hash)
+    entry.id.should == 'dog'
+    entry.translations.should == {'en' => 'dog', 'fr' => 'chien'}
+  end
+
+  it 'should convert to json' do
+    entry = Entry.new('dog', {'en' => 'dog', 'fr' => 'chien'})
+    entry.to_json.should == JSON.generate({'en' => 'dog', 'fr' => 'chien'})
+  end
+
+  it 'should receive to_json' do
+    entry = Entry.new('dog', {'en' => 'dog', 'fr' => 'chien'})
+    entry.should_receive(:to_json)
+    entry.to_s
+  end
+
+  it 'should equal to the entry object with the same id and translations' do
+    Entry.new('dog', {'en' => 'dog', 'fr' => 'chien'}) == Entry.new('dog', {'en' => 'dog', 'fr' => 'chien'})
   end
 
 end
