@@ -14,11 +14,6 @@ class WebDictionary < Sinatra::Application
     dictionary[params[:id]]
   end
 
-  # GET /entries.json
-  get '/entries.json' do
-    dictionary.all
-  end
-
   # DELETE /entries/{entry-id}
   delete '/entries/:id' do
     dictionary.delete(params[:id])
